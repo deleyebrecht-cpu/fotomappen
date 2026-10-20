@@ -38,7 +38,7 @@ header h1{font-size:28px;font-weight:900;flex:1;overflow:hidden;text-overflow:el
 .big{position:fixed;inset:0;background:#000;z-index:20;display:none;flex-direction:column}.big.on{display:flex}
 .big img{flex:1;object-fit:contain;min-height:0;width:100%}.big .t{color:#fff;padding:12px 16px;display:flex;gap:8px;align-items:center}
 .big textarea{flex:1;border-radius:10px;padding:8px;font:inherit;height:42px}
-.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#2d2a32;color:#fff;padding:10px 18px;border-radius:20px;font-size:14px;display:none;z-index:30}
+.toast{position:fixed;left:50%;bottom:190px;transform:translateX(-50%);background:#2d2a32;color:#fff;padding:10px 18px;border-radius:20px;font-size:14px;display:none;z-index:30}
 .empty{text-align:center;color:#8a8190;padding:40px 20px}
 </style></head><body>
 <section id="home" class="view on">
@@ -51,7 +51,8 @@ header h1{font-size:28px;font-weight:900;flex:1;overflow:hidden;text-overflow:el
  <div id="gbody"></div>
  <div class="bar" id="selbar" style="display:none;flex-direction:column;gap:8px;background:#fff;box-shadow:0 -4px 16px rgba(0,0,0,.12);border-radius:22px 22px 0 0;z-index:5">
   <div style="display:flex;align-items:center;justify-content:space-between"><b id="selcnt" style="font-size:16px">0 geselecteerd</b><button onclick="selAllToggle()" id="selall" style="padding:8px 14px;border-radius:16px;background:#ffe1ea;color:#d94a76;font-weight:800">Alles</button></div>
-  <div style="display:flex;gap:8px"><button class="btn" style="background:#e5484d" onclick="delSel()">🗑️ Verwijderen</button><button class="btn p" onclick="openShare()">📤 Delen</button></div></div>
+  <div style="display:flex;gap:8px"><button class="btn" style="background:#e5484d" onclick="delSel()">🗑️ Verwijderen</button><button class="btn p" onclick="openShare()">📤 Delen</button></div>
+  <button class="btn l" onclick="saveSelToPhone()">💾 Opslaan op gsm</button></div>
  <div class="bar" id="normbar"><button class="btn" id="sharebtn" onclick="openShare()">📤 Deel map</button><button class="btn p" style="flex:none;width:64px" onclick="shoot(cur)">📷</button></div>
 </section>
 <section id="search" class="view">
@@ -67,7 +68,9 @@ header h1{font-size:28px;font-weight:900;flex:1;overflow:hidden;text-overflow:el
  <div class="card"><div class="lb">Mappen</div><div id="flist"></div><button class="btn p" style="width:100%;margin-top:8px" onclick="addFolder()">+ Nieuwe map</button>
   <div style="font-size:12px;color:#8a8190;margin-top:6px">Tik op emoji of kleur om te wijzigen · ▲▼ volgorde · 🗑️ verwijderen</div></div>
  <div class="card"><div class="lb">Camera</div><div style="display:flex;gap:8px"><button class="btn l" id="cm-snel" onclick="S.cam='snel';saveS()">⚡ Snelle camera</button><button class="btn l" id="cm-gsm" onclick="S.cam='gsm';saveS()">📱 Camera van de gsm</button></div>
-  <div style="font-size:12px;color:#8a8190;margin-top:6px">Snelle camera: elke tik slaat meteen een foto op, zonder bevestigen.</div></div>
+  <div style="font-size:12px;color:#8a8190;margin-top:6px">Snelle camera: elke tik slaat meteen een foto op, zonder bevestigen.</div>
+  <label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-weight:800"><input type="checkbox" id="savelocal" style="width:24px;height:24px;accent-color:#ff6f91" onchange="S.saveLocal=this.checked;saveS();if(this.checked)dlHint()"> 💾 Ook opslaan op gsm</label>
+  <div style="font-size:12px;color:#8a8190;margin-top:4px">Elke nieuwe foto wordt ook als bestand in Downloads bewaard, zodat ze in je galerij verschijnt.</div></div>
  <div class="card"><div class="lb">Back-up</div><div style="display:flex;gap:8px"><button class="btn l" onclick="exportAll()">⬇️ Exporteren</button><button class="btn l" onclick="$('impf').click()">⬆️ Importeren</button></div>
   <div style="font-size:12px;color:#8a8190;margin-top:6px">Alle foto's staan enkel op dit toestel. Maak geregeld een back-up.</div></div>
 </section>
@@ -128,27 +131,37 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 async function addFolder(){const n=prompt('Naam van de nieuwe map:');if(!n)return;await put('folders',{id:uid(),name:n.trim(),emoji:EMO[F.length%EMO.length],color:COLORS[F.length%COLORS.length],order:Date.now()});await loadF();renderHome();renderSettings()}
 // camera
 let shootTo=null;function shoot(fid,native){shootTo=fid;if(!native&&(S.cam||'snel')=='snel'&&navigator.mediaDevices?.getUserMedia)return qOpen(fid);$('cam').value='';$('cam').click()}
-$('cam').onchange=async e=>{const fl=[...e.target.files];if(!fl.length)return;for(const f of fl)await addPhoto(shootTo,f);toast(`📸 Opgeslagen in ${F.find(x=>x.id==shootTo)?.name||'map'}`);
+$('cam').onchange=async e=>{const fl=[...e.target.files];if(!fl.length)return;if(S.saveLocal)dlHint();for(const f of fl)await addPhoto(shootTo,f,Date.now(),'',true);toast(`📸 Opgeslagen in ${F.find(x=>x.id==shootTo)?.name||'map'}`);
  if($('gallery').classList.contains('on'))openGal(shootTo);else renderHome()};
 async function scale(file,max,q){const bmp=await createImageBitmap(file,{imageOrientation:'from-image'}).catch(()=>null);let img=bmp;if(!img){img=new Image();img.src=URL.createObjectURL(file);await img.decode()}
  const w=img.width,h=img.height,r=Math.min(1,max/Math.max(w,h));const c=document.createElement('canvas');c.width=Math.round(w*r);c.height=Math.round(h*r);c.getContext('2d').drawImage(img,0,0,c.width,c.height);return new Promise(res=>c.toBlob(res,'image/jpeg',q))}
-async function addPhoto(fid,file,ts=Date.now(),note=''){const image=await scale(file,2000,.88),thumb=await scale(file,360,.75);await put('photos',{id:uid(),folder:fid,ts,note,image,thumb})}
+async function addPhoto(fid,file,ts=Date.now(),note='',toPhone=false){const image=await scale(file,2000,.88),thumb=await scale(file,360,.75);await put('photos',{id:uid(),folder:fid,ts,note,image,thumb});if(toPhone&&S.saveLocal)queueSave(fid,image,ts)}
+// opslaan op gsm (download-wachtrij)
+const dlQ=[];let dlBusy=false;
+function phoneName(fid,ts){const f=F.find(x=>x.id==fid),d=new Date(ts),z=n=>String(n).padStart(2,'0');
+ const n=(f?.name||'Foto').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\-]+/g,'_').replace(/^_+|_+$/g,'')||'Foto';
+ return `${n}_${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}_${z(d.getHours())}-${z(d.getMinutes())}-${z(d.getSeconds())}.jpg`}
+const dlNames=new Set();function queueSave(fid,blob,ts){let name=phoneName(fid,ts),i=2;while(dlNames.has(name))name=name.replace(/(\(\d+\))?\.jpg$/,`(${i++}).jpg`);dlNames.add(name);dlQ.push({name,blob});runDlQ()}
+let dlLast='';async function runDlQ(){if(dlBusy)return;dlBusy=true;while(dlQ.length){const x=dlQ.shift();dlLast=x.name;dl(x.blob,x.name);await new Promise(r=>setTimeout(r,450))}dlBusy=false}
+function dlHint(){if(S.dlHinted)return;S.dlHinted=true;put('kv',S,'settings');alert('Tip: Chrome kan één keer vragen of deze site "meerdere bestanden mag downloaden". Kies dan "Toestaan", anders worden niet alle foto\'s op je gsm bewaard.\n\nDe foto\'s komen in de map Downloads en verschijnen in je galerij.')}
+async function saveSelToPhone(){const ps=curPhotos.filter(p=>sel.has(p.id)).sort((a,b)=>a.ts-b.ts);if(!ps.length)return toast('Selecteer eerst foto\'s');dlHint();ps.forEach(p=>queueSave(p.folder,p.image,p.ts));toast(`💾 ${ps.length} foto${ps.length>1?"'s":''} worden opgeslagen…`)}
 // snelle camera
 let qs=null,qFacing='environment',qN=0,qTorchOn=false,qBusy=false;
 async function qStart(){if(qs)qs.getTracks().forEach(t=>t.stop());qs=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:qFacing},width:{ideal:3840},height:{ideal:2160}}});
  $('qv').srcObject=qs;await $('qv').play().catch(()=>{});const tr=qs.getVideoTracks()[0],cap=tr.getCapabilities?.()||{};qTorchOn=false;$('qtorch').style.display=cap.torch?'':'none';$('qtorch').style.background='#fff'}
 async function qOpen(fid){const f=F.find(x=>x.id==fid);qN=0;$('qban').textContent=f.emoji+' '+f.name;$('qban').style.background=f.color;$('qcnt').textContent='Tik op de knop om te fotograferen';$('qthumb').style.backgroundImage='';
- $('qc').style.display='flex';try{await qStart()}catch(e){qClose();toast('Snelle camera niet beschikbaar, gsm-camera wordt gebruikt');shoot(fid,true)}}
-function qClose(){if(qs)qs.getTracks().forEach(t=>t.stop());qs=null;$('qc').style.display='none'}
-async function qShoot(){if(!qs||qBusy)return;qBusy=true;const v=$('qv'),fid=shootTo;try{let blob;const tr=qs.getVideoTracks()[0];
+ if(S.saveLocal)dlHint();$('qc').style.display='flex';try{await qStart()}catch(e){qClose();toast('Snelle camera niet beschikbaar, gsm-camera wordt gebruikt');shoot(fid,true)}}
+function qClose(){if(qPending)return;if(qs)qs.getTracks().forEach(t=>t.stop());qs=null;$('qc').style.display='none'}
+let qChain=Promise.resolve(),qPending=0;
+function qGrab(){const v=$('qv'),c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);return new Promise(r=>c.toBlob(r,'image/jpeg',.9))}
+function qShoot(){if(!qs)return;const fid=shootTo,tr=qs.getVideoTracks()[0],useIC=window.ImageCapture&&!qTorchOn&&!qBusy;
  const fl=$('qflash');fl.style.transition='none';fl.style.opacity=.8;requestAnimationFrame(()=>{fl.style.transition='opacity .3s';fl.style.opacity=0});navigator.vibrate?.(30);
- if(window.ImageCapture&&!qTorchOn){try{blob=await new ImageCapture(tr).takePhoto()}catch(e){}}
- if(!blob){const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.9))}
- await addPhoto(fid,blob);qN++;$('qcnt').textContent=`✔ ${qN} foto${qN>1?"'s":''} opgeslagen`;$('qthumb').style.backgroundImage=`url(${URL.createObjectURL(blob)})`}
- catch(e){toast('Foto mislukt: '+e.message)}finally{qBusy=false}}
+ const ts=Date.now();let p;if(useIC){qBusy=true;p=new ImageCapture(tr).takePhoto().catch(()=>qGrab()).finally(()=>qBusy=false)}else p=qGrab();
+ qPending++;qChain=qChain.then(async()=>{try{const blob=await p;await addPhoto(fid,blob,ts,'',true);qN++;$('qcnt').textContent=`✔ ${qN} foto${qN>1?"'s":''} opgeslagen`;$('qthumb').style.backgroundImage=`url(${URL.createObjectURL(blob)})`}
+  catch(e){toast('Foto mislukt: '+e.message)}finally{qPending--}})}
 async function qSwitch(){qFacing=qFacing=='environment'?'user':'environment';try{await qStart()}catch(e){toast('Wisselen mislukt')}}
 async function qTorch(){const tr=qs?.getVideoTracks()[0];if(!tr)return;qTorchOn=!qTorchOn;try{await tr.applyConstraints({advanced:[{torch:qTorchOn}]});$('qtorch').style.background=qTorchOn?'#ffd166':'#fff'}catch(e){qTorchOn=false;toast('Zaklamp niet ondersteund')}}
-function qDone(){const fid=shootTo;qClose();openGal(fid)}
+async function qDone(){const fid=shootTo;if(qPending)toast('Foto\'s worden nog opgeslagen…');await qChain;qClose();openGal(fid)}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&qs)qClose()});
 // gallery
 const fmtD=ts=>new Date(ts).toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -210,7 +223,7 @@ $('impf').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const z=
  for(const p of m.photos)await put('photos',{...p,image:new Blob([z[`img/${p.id}.jpg`]],{type:'image/jpeg'}),thumb:new Blob([z[`thumb/${p.id}.jpg`]],{type:'image/jpeg'})});
  toast('Back-up teruggezet ✔');applyS();go('home')}catch(err){alert('Importeren mislukt: '+err.message)}};
 // settings
-function renderSettings(){['snel','gsm'].forEach(k=>{const b=$('cm-'+k);const on=(S.cam||'snel')==k;b.style.background=on?'#2d2a32':'';b.style.color=on?'#fff':''});$('stitle').value=S.title;$('bgs').innerHTML=BGS.map(c=>`<button style="background:${c}" class="${S.bg==c&&!S.bgImg?'on':''}" onclick="S.bg='${c}';S.bgImg=null;saveS()"></button>`).join('');
+function renderSettings(){$('savelocal').checked=!!S.saveLocal;['snel','gsm'].forEach(k=>{const b=$('cm-'+k);const on=(S.cam||'snel')==k;b.style.background=on?'#2d2a32':'';b.style.color=on?'#fff':''});$('stitle').value=S.title;$('bgs').innerHTML=BGS.map(c=>`<button style="background:${c}" class="${S.bg==c&&!S.bgImg?'on':''}" onclick="S.bg='${c}';S.bgImg=null;saveS()"></button>`).join('');
  $('flist').innerHTML=F.map((f,i)=>`<div class="fr"><button class="e" style="background:${f.color}" onclick="cyc('${f.id}','emoji')">${f.emoji}</button><input value="${esc(f.name)}" onchange="ren('${f.id}',this.value)"><button class="s" style="border-radius:50%;background:${f.color}" onclick="cyc('${f.id}','color')"></button><button class="s" title="Omslag" onclick="openCover('${f.id}')">🖼️</button><button class="s" onclick="mv(${i},-1)">▲</button><button class="s" onclick="mv(${i},1)">▼</button><button class="s" style="background:#e5484d;color:#fff;border-radius:10px" title="Map verwijderen" onclick="rmF('${f.id}')">🗑️</button></div>`).join('')}
 async function cyc(id,k){const f=F.find(x=>x.id==id),L=k=='emoji'?EMO:COLORS;f[k]=L[(L.indexOf(f[k])+1)%L.length];await put('folders',f);renderSettings()}
 async function ren(id,v){const f=F.find(x=>x.id==id);if(!v.trim())return;f.name=v.trim();await put('folders',f)}
