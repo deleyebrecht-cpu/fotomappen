@@ -1,0 +1,209 @@
+<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Fotomappen</title><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.png"><link rel="apple-touch-icon" href="icon.png"><meta name="theme-color" content="#ff6f91">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg,#FFF8EE) center/cover fixed;color:#2d2a32;min-height:100vh;padding-bottom:90px}
+button{font:inherit;border:0;cursor:pointer;background:none;color:inherit}
+header{display:flex;align-items:center;gap:8px;padding:16px 18px 4px}
+header h1{font-size:28px;font-weight:900;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ib{width:42px;height:42px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.1);font-size:19px;flex:none}
+.sub{padding:0 18px 10px;color:#6f6878;font-size:13px}
+.srch{display:block;width:calc(100% - 36px);margin:4px 18px 14px;border:0;border-radius:16px;padding:13px 16px;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 18px}
+.tile{height:180px;border-radius:26px;padding:14px;color:#fff;position:relative;box-shadow:0 6px 14px rgba(0,0,0,.14);display:flex;flex-direction:column;justify-content:flex-end;text-align:left;overflow:hidden}
+.tile .th{position:absolute;top:14px;left:14px;right:14px;height:78px;border-radius:18px;background:rgba(255,255,255,.3) center/cover;display:flex;align-items:center;justify-content:center;font-size:44px}
+.tile b{font-size:16px;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,.25)}.tile span{font-size:12px;opacity:.95}
+.gal{position:absolute;top:8px;right:8px;z-index:2;width:38px;height:38px;border-radius:50%;background:#fff;font-size:18px;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.plus{background:rgba(255,255,255,.85);border:3px dashed #c9bfd6;color:#7b6f92;align-items:center;justify-content:center;box-shadow:none}
+.plus i{font-size:56px;font-style:normal;font-weight:300;line-height:1}
+.view{display:none}.view.on{display:block}
+.d{padding:12px 18px 6px;font-weight:800;color:#6f6878;font-size:13px}
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:0 12px}
+.ph{aspect-ratio:1;border-radius:12px;background:#ddd center/cover;position:relative}
+.ph.sel:after{content:"✓";position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:#ff6f91;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid #fff;font-size:13px}
+.ph small{position:absolute;left:4px;bottom:4px;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:1px 5px;border-radius:6px}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;background:linear-gradient(transparent,rgba(255,255,255,.95) 30%)}
+.btn{flex:1;padding:15px;border-radius:20px;font-weight:800;font-size:16px;background:#2d2a32;color:#fff}
+.btn.p{background:linear-gradient(135deg,#ff8fb1,#ff6f91)}.btn.l{background:#fff;color:#2d2a32;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.card{background:#fff;margin:0 16px 12px;border-radius:20px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.lb{font-size:12px;font-weight:800;color:#8a8190;text-transform:uppercase;margin-bottom:8px}
+.in{width:100%;border:2px solid #e5dcef;border-radius:12px;padding:10px 12px;font-size:17px;font-weight:700}
+.sw{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.sw button{width:38px;height:38px;border-radius:50%;border:2px solid #ddd}.sw button.on{outline:3px solid #ff6f91}
+.fr{display:flex;align-items:center;gap:6px;padding:8px 0;border-top:1px solid #f1ebf6}
+.fr .e{width:40px;height:40px;border-radius:12px;font-size:20px;flex:none}.fr input{flex:1;min-width:0;border:0;font-size:15px;font-weight:700;padding:6px}
+.fr .s{width:30px;height:30px;font-size:15px;flex:none}
+.ov{position:fixed;inset:0;background:rgba(30,20,40,.45);display:none;z-index:9}.ov.on{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:28px 28px 0 0;padding:12px 20px calc(24px + env(safe-area-inset-bottom));z-index:10;transform:translateY(110%);transition:.2s}.sheet.on{transform:none}
+.op{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.big{position:fixed;inset:0;background:#000;z-index:20;display:none;flex-direction:column}.big.on{display:flex}
+.big img{flex:1;object-fit:contain;min-height:0;width:100%}.big .t{color:#fff;padding:12px 16px;display:flex;gap:8px;align-items:center}
+.big textarea{flex:1;border-radius:10px;padding:8px;font:inherit;height:42px}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#2d2a32;color:#fff;padding:10px 18px;border-radius:20px;font-size:14px;display:none;z-index:30}
+.empty{text-align:center;color:#8a8190;padding:40px 20px}
+</style></head><body>
+<section id="home" class="view on">
+ <header><h1 id="title">📸 Fotomappen</h1><button class="ib" onclick="go('search')">🔍</button><button class="ib" onclick="go('settings')">⚙️</button></header>
+ <div class="sub">Tik op een map om te fotograferen · 🖼️ om foto's te bekijken</div>
+ <div class="grid" id="tiles"></div>
+</section>
+<section id="gallery" class="view">
+ <header><button class="ib" onclick="go('home')">‹</button><h1 id="gtitle" style="font-size:22px"></h1><button class="ib" id="selbtn" onclick="toggleSel()">☑️</button></header>
+ <div id="gbody"></div>
+ <div class="bar"><button class="btn" id="sharebtn" onclick="openShare()">📤 Deel map</button><button class="btn p" style="flex:none;width:64px" onclick="shoot(cur)">📷</button></div>
+</section>
+<section id="search" class="view">
+ <header><button class="ib" onclick="go('home')">‹</button><h1 style="font-size:24px">🔍 Zoeken</h1></header>
+ <input class="srch" id="q" placeholder="Map, datum (bv. 12/10) of notitie…" oninput="doSearch()">
+ <div id="sbody"></div>
+</section>
+<section id="settings" class="view">
+ <header><button class="ib" onclick="go('home')">‹</button><h1 style="font-size:24px">⚙️ Instellingen</h1></header>
+ <div class="card"><div class="lb">Titel van de app</div><input class="in" id="stitle" onchange="S.title=this.value;saveS()"></div>
+ <div class="card"><div class="lb">Achtergrond</div><div class="sw" id="bgs"></div>
+  <div style="display:flex;gap:8px;margin-top:10px"><button class="btn l" onclick="$('bgf').click()">📷 Eigen foto</button><button class="btn l" onclick="S.bgImg=null;saveS()">Foto weg</button></div></div>
+ <div class="card"><div class="lb">Mappen</div><div id="flist"></div><button class="btn p" style="width:100%;margin-top:8px" onclick="addFolder()">+ Nieuwe map</button>
+  <div style="font-size:12px;color:#8a8190;margin-top:6px">Tik op emoji of kleur om te wijzigen · ▲▼ volgorde · 🗑️ verwijderen</div></div>
+ <div class="card"><div class="lb">Back-up</div><div style="display:flex;gap:8px"><button class="btn l" onclick="exportAll()">⬇️ Exporteren</button><button class="btn l" onclick="$('impf').click()">⬆️ Importeren</button></div>
+  <div style="font-size:12px;color:#8a8190;margin-top:6px">Alle foto's staan enkel op dit toestel. Maak geregeld een back-up.</div></div>
+</section>
+<div class="ov" id="ov" onclick="closeShare();closeCover()"></div>
+<div class="sheet" id="sheet"><div style="width:44px;height:5px;border-radius:3px;background:#ddd;margin:0 auto 14px"></div>
+ <div style="display:flex;justify-content:space-between;align-items:center"><div><b style="font-size:20px">Deel map</b><div id="shinfo" style="color:#8a8190;font-size:13px"></div></div><button class="btn l" style="flex:none;padding:10px 14px;font-size:14px" onclick="selAll()">☑ Alles selecteren</button></div>
+ <div class="op"><button class="btn p" onclick="doShare()">📤 Delen<br><small style="font-weight:600">WhatsApp, Gmail, Drive…</small></button><button class="btn" onclick="doZip()">🗜️ Download<br><small style="font-weight:600">als zip</small></button></div>
+ <button class="btn l" style="width:100%;margin-top:10px;color:#d33" onclick="delSel()">🗑️ Geselecteerde verwijderen</button></div>
+<div class="sheet" id="csheet" style="max-height:80vh;overflow:auto"><div style="width:44px;height:5px;border-radius:3px;background:#ddd;margin:0 auto 14px"></div>
+ <b style="font-size:20px">Omslagfoto</b><div id="cinfo" style="color:#8a8190;font-size:13px;margin-bottom:12px"></div>
+ <button class="btn l" style="width:100%;margin-bottom:8px;text-align:left" onclick="setCover(null)">🔄 Automatisch (laatste foto)</button>
+ <button class="btn l" style="width:100%;margin-bottom:8px;text-align:left" onclick="pickFromFolder()">🗂️ Kies uit deze map</button>
+ <button class="btn l" style="width:100%;text-align:left" onclick="$('covf').click()">🖼️ Kies uit galerij</button>
+ <div class="pg" id="cpick" style="padding:12px 0 0"></div></div>
+<input type="file" id="covf" accept="image/*" hidden>
+<div class="big" id="big"><img id="bigimg"><div class="t"><button class="ib" onclick="$('big').classList.remove('on')">✕</button><textarea id="note" placeholder="Notitie…"></textarea><button class="ib" onclick="delOne()">🗑️</button></div></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="cam" accept="image/*" capture="environment" hidden>
+<input type="file" id="bgf" accept="image/*" hidden><input type="file" id="impf" accept=".zip" hidden>
+<script>
+const $=id=>document.getElementById(id);
+const COLORS=['#ff6f91','#f8a530','#ffd166','#5bb07a','#4fb3d9','#4f86c6','#9b7bff','#c0623a','#7b6f92','#2d2a32'];
+const EMO=['📁','🦋','🧸','☀️','🌈','🐞','🌻','🎨','🔧','🏠','🥖','🍺','🏫','🚗','⚡','🌳','⭐','🐶'];
+const BGS=['#FFF8EE','#eef2f6','#eaf7e6','#fdeef3','#f3eefe','#1e1b24'];
+let db,S={title:'📸 Fotomappen',bg:BGS[0],bgImg:null},F=[],cur=null,sel=new Set(),selMode=false,curPhotos=[],bigId=null;
+function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>e.style.display='none',2200)}
+// IndexedDB
+function idb(){return new Promise((r,j)=>{const q=indexedDB.open('fotomappen',1);q.onupgradeneeded=()=>{const d=q.result;d.createObjectStore('kv');d.createObjectStore('folders',{keyPath:'id'});const p=d.createObjectStore('photos',{keyPath:'id'});p.createIndex('f','folder')};q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)})}
+function tx(st,mode,fn){return new Promise((r,j)=>{const t=db.transaction(st,mode);let out;const res=fn(t.objectStore(st));if(res)res.onsuccess=()=>out=res.result;t.oncomplete=()=>r(out);t.onerror=()=>j(t.error)})}
+const all=st=>tx(st,'readonly',s=>s.getAll());
+const put=(st,v,k)=>tx(st,'readwrite',s=>k?s.put(v,k):s.put(v));
+const del=(st,k)=>tx(st,'readwrite',s=>s.delete(k));
+const photosOf=f=>tx('photos','readonly',s=>s.index('f').getAll(f));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+async function saveS(){await put('kv',S,'settings');applyS();renderSettings()}
+function applyS(){$('title').textContent=S.title;document.title=S.title;const b=document.body;
+ b.style.backgroundColor=S.bg;b.style.backgroundImage=S.bgImg?`url(${S.bgImg})`:'';b.style.color=S.bg=='#1e1b24'&&!S.bgImg?'#eee':''}
+async function loadF(){F=(await all('folders')).sort((a,b)=>a.order-b.order)}
+const urls=new Map();function url(p,k='thumb'){const key=p.id+k;if(!urls.has(key))urls.set(key,URL.createObjectURL(p[k]));return urls.get(key)}
+function go(v){document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id==v));scrollTo(0,0);if(v=='home')renderHome();if(v=='settings')renderSettings();if(v=='search')$('q').focus()}
+async function renderHome(){await loadF();const ps=await all('photos');const t=$('tiles');t.innerHTML='';
+ for(const f of F){const mine=ps.filter(p=>p.folder==f.id).sort((a,b)=>b.ts-a.ts);const cv=coverURL(f,mine);const d=document.createElement('button');d.className='tile';d.style.background=`linear-gradient(135deg,${f.color}cc,${f.color})`;
+  d.innerHTML=`<span class="th" style="${cv?`background-image:url(${cv})`:''}">${cv?'':f.emoji}</span><b>${cv?f.emoji+' ':''}${esc(f.name)}</b><span>${mine.length} foto's</span>`;
+  d.onclick=()=>{if(d._lp)return d._lp=0;shoot(f.id)};d.oncontextmenu=e=>{e.preventDefault();d._lp=1;setTimeout(()=>d._lp=0,600);openCover(f.id)};const g=document.createElement('button');g.className='gal';g.textContent='🖼️';g.onclick=e=>{e.stopPropagation();openGal(f.id)};d.appendChild(g);t.appendChild(d)}
+ const p=document.createElement('button');p.className='tile plus';p.innerHTML='<i>+</i><b style="text-shadow:none">Nieuwe map</b>';p.onclick=addFolder;t.appendChild(p)}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function addFolder(){const n=prompt('Naam van de nieuwe map:');if(!n)return;await put('folders',{id:uid(),name:n.trim(),emoji:EMO[F.length%EMO.length],color:COLORS[F.length%COLORS.length],order:Date.now()});await loadF();renderHome();renderSettings()}
+// camera
+let shootTo=null;function shoot(fid){shootTo=fid;$('cam').value='';$('cam').click()}
+$('cam').onchange=async e=>{const fl=[...e.target.files];if(!fl.length)return;for(const f of fl)await addPhoto(shootTo,f);toast(`📸 Opgeslagen in ${F.find(x=>x.id==shootTo)?.name||'map'}`);
+ if($('gallery').classList.contains('on'))openGal(shootTo);else renderHome()};
+async function scale(file,max,q){const bmp=await createImageBitmap(file,{imageOrientation:'from-image'}).catch(()=>null);let img=bmp;if(!img){img=new Image();img.src=URL.createObjectURL(file);await img.decode()}
+ const w=img.width,h=img.height,r=Math.min(1,max/Math.max(w,h));const c=document.createElement('canvas');c.width=Math.round(w*r);c.height=Math.round(h*r);c.getContext('2d').drawImage(img,0,0,c.width,c.height);return new Promise(res=>c.toBlob(res,'image/jpeg',q))}
+async function addPhoto(fid,file,ts=Date.now(),note=''){const image=await scale(file,2000,.88),thumb=await scale(file,360,.75);await put('photos',{id:uid(),folder:fid,ts,note,image,thumb})}
+// gallery
+const fmtD=ts=>new Date(ts).toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const fmtT=ts=>new Date(ts).toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'});
+function groupHTML(ps,showF){ps.sort((a,b)=>b.ts-a.ts);let h='',last='';const today=new Date().toDateString(),yd=new Date(Date.now()-864e5).toDateString();
+ for(const p of ps){const ds=new Date(p.ts).toDateString();if(ds!=last){if(last)h+='</div>';last=ds;h+=`<div class="d">${ds==today?'Vandaag · ':ds==yd?'Gisteren · ':''}${fmtD(p.ts)}</div><div class="pg">`}
+  h+=`<div class="ph ${sel.has(p.id)?'sel':''}" data-id="${p.id}" style="background-image:url(${url(p)})"><small>${showF?esc(F.find(f=>f.id==p.folder)?.name||'')+' · ':''}${fmtT(p.ts)}${p.note?' 📝':''}</small></div>`}
+ return h+(last?'</div>':'')}
+async function openGal(fid){cur=fid;const f=F.find(x=>x.id==fid);go('gallery');$('gtitle').textContent=f.emoji+' '+f.name;curPhotos=await photosOf(fid);
+ $('gbody').innerHTML=curPhotos.length?groupHTML(curPhotos):'<div class="empty">Nog geen foto\'s.<br>Tik op 📷 om er een te nemen.</div>';bindPh($('gbody'));
+ $('sharebtn').textContent=sel.size?`📤 Deel ${sel.size} foto's`:'📤 Deel map'}
+function bindPh(el){el.querySelectorAll('.ph').forEach(d=>d.onclick=()=>{const id=d.dataset.id;if(selMode){sel.has(id)?sel.delete(id):sel.add(id);d.classList.toggle('sel');$('sharebtn').textContent=sel.size?`📤 Deel ${sel.size} foto's`:'📤 Deel map'}else showBig(id)})}
+function toggleSel(){selMode=!selMode;if(!selMode)sel.clear();$('selbtn').style.background=selMode?'#ffe1ea':'';openGal(cur);toast(selMode?'Tik op foto\'s om te selecteren':'Selectie uit')}
+async function showBig(id){bigId=id;const p=await tx('photos','readonly',s=>s.get(id));curPhotos=curPhotos.some(x=>x.id==id)?curPhotos:[p];$('bigimg').src=url(p,'image');$('note').value=p.note||'';$('big').classList.add('on');
+ $('note').onchange=async()=>{p.note=$('note').value;await put('photos',p)}}
+async function delOne(){if(!confirm('Deze foto verwijderen?'))return;await del('photos',bigId);$('big').classList.remove('on');if(cur)openGal(cur)}
+// share
+function shareList(){return sel.size?curPhotos.filter(p=>sel.has(p.id)):curPhotos}
+function openShare(){if(!curPhotos.length)return toast('Geen foto\'s om te delen');const f=F.find(x=>x.id==cur);$('shinfo').textContent=`${f.emoji} ${f.name} · ${sel.size?sel.size+' geselecteerd':'alle '+curPhotos.length+' foto\'s'}`;$('ov').classList.add('on');$('sheet').classList.add('on')}
+function closeShare(){$('ov').classList.remove('on');$('sheet').classList.remove('on')}
+function selAll(){selMode=true;curPhotos.forEach(p=>sel.add(p.id));openGal(cur);openShare()}
+const fname=(p,i)=>{const d=new Date(p.ts),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}_${i+1}.jpg`};
+async function doShare(){const ps=shareList(),f=F.find(x=>x.id==cur);const files=ps.map((p,i)=>new File([p.image],fname(p,i),{type:'image/jpeg'}));
+ if(navigator.canShare&&navigator.canShare({files})){try{await navigator.share({files,title:f.name,text:`${f.name} – ${files.length} foto's`});closeShare()}catch(e){if(e.name!='AbortError')toast('Delen mislukt, probeer zip')}}
+ else{toast('Delen niet ondersteund, zip wordt gedownload');doZip()}}
+async function doZip(){const ps=shareList(),f=F.find(x=>x.id==cur);const z=await makeZip(await Promise.all(ps.map(async(p,i)=>({name:fname(p,i),data:new Uint8Array(await p.image.arrayBuffer()),ts:p.ts}))));dl(z,f.name.replace(/[^\w\- ]+/g,'')+'.zip');closeShare()}
+async function delSel(){if(!sel.size)return toast('Selecteer eerst foto\'s (☑️)');if(!confirm(`${sel.size} foto's verwijderen?`))return;for(const id of sel)await del('photos',id);sel.clear();closeShare();openGal(cur)}
+function dl(blob,n){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=n;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href)},2000)}
+// zip (store)
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(b){let c=~0;for(let i=0;i<b.length;i++)c=CRC[(c^b[i])&255]^(c>>>8);return(~c)>>>0}
+async function makeZip(files){const enc=new TextEncoder(),parts=[],cen=[];let off=0;
+ for(const f of files){const nm=enc.encode(f.name),d=new Date(f.ts||Date.now()),crc=crc32(f.data),sz=f.data.length;
+  const dt=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1),dd=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate();
+  const h=new DataView(new ArrayBuffer(30));[[0,0x04034b50,4],[4,20,2],[6,0x0800,2],[8,0,2],[10,dt,2],[12,dd,2],[14,crc,4],[18,sz,4],[22,sz,4],[26,nm.length,2],[28,0,2]].forEach(([o,v,l])=>l==4?h.setUint32(o,v,true):h.setUint16(o,v,true));
+  const c=new DataView(new ArrayBuffer(46));[[0,0x02014b50,4],[4,20,2],[6,20,2],[8,0x0800,2],[10,0,2],[12,dt,2],[14,dd,2],[16,crc,4],[20,sz,4],[24,sz,4],[28,nm.length,2],[30,0,2],[32,0,2],[34,0,2],[36,0,2],[38,0,4],[42,off,4]].forEach(([o,v,l])=>l==4?c.setUint32(o,v,true):c.setUint16(o,v,true));
+  parts.push(h,nm,f.data);cen.push(c,nm);off+=30+nm.length+sz}
+ const cs=cen.reduce((a,x)=>a+x.byteLength,0),e=new DataView(new ArrayBuffer(22));[[0,0x06054b50,4],[8,files.length,2],[10,files.length,2],[12,cs,4],[16,off,4]].forEach(([o,v,l])=>l==4?e.setUint32(o,v,true):e.setUint16(o,v,true));
+ return new Blob([...parts,...cen,e],{type:'application/zip'})}
+function readZip(buf){const v=new DataView(buf),u=new Uint8Array(buf),dec=new TextDecoder(),out={};let p=0;
+ while(p+30<=u.length&&v.getUint32(p,true)==0x04034b50){if(v.getUint16(p+8,true)!=0)throw Error('Alleen niet-gecomprimeerde zip');const sz=v.getUint32(p+18,true),nl=v.getUint16(p+26,true),xl=v.getUint16(p+28,true);
+  const n=dec.decode(u.subarray(p+30,p+30+nl)),s=p+30+nl+xl;out[n]=u.slice(s,s+sz);p=s+sz}return out}
+// backup
+async function exportAll(){toast('Back-up maken…');const ps=await all('photos');const meta={v:2,settings:S,folders:F.map(f=>({...f,cover:f.cover?.type=='img'?{type:'img',v:f.cover.v}:f.cover})),photos:ps.map(p=>({id:p.id,folder:p.folder,ts:p.ts,note:p.note}))};
+ const files=[{name:'data.json',data:new TextEncoder().encode(JSON.stringify(meta))}];for(const f of F)if(f.cover?.type=='img')files.push({name:`cover/${f.id}.jpg`,data:new Uint8Array(await f.cover.blob.arrayBuffer())});
+ for(const p of ps){files.push({name:`img/${p.id}.jpg`,data:new Uint8Array(await p.image.arrayBuffer()),ts:p.ts});files.push({name:`thumb/${p.id}.jpg`,data:new Uint8Array(await p.thumb.arrayBuffer()),ts:p.ts})}
+ dl(await makeZip(files),`fotomappen-backup-${new Date().toISOString().slice(0,10)}.zip`)}
+$('impf').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const z=readZip(await f.arrayBuffer()),m=JSON.parse(new TextDecoder().decode(z['data.json']));
+ if(!confirm(`Back-up met ${m.folders.length} mappen en ${m.photos.length} foto's toevoegen? Bestaande items met hetzelfde id worden overschreven.`))return;
+ S=m.settings;await put('kv',S,'settings');for(const x of m.folders){if(x.cover?.type=='img'){const b=z[`cover/${x.id}.jpg`];x.cover=b?{...x.cover,blob:new Blob([b],{type:'image/jpeg'})}:null}await put('folders',x)}
+ for(const p of m.photos)await put('photos',{...p,image:new Blob([z[`img/${p.id}.jpg`]],{type:'image/jpeg'}),thumb:new Blob([z[`thumb/${p.id}.jpg`]],{type:'image/jpeg'})});
+ toast('Back-up teruggezet ✔');applyS();go('home')}catch(err){alert('Importeren mislukt: '+err.message)}};
+// settings
+function renderSettings(){$('stitle').value=S.title;$('bgs').innerHTML=BGS.map(c=>`<button style="background:${c}" class="${S.bg==c&&!S.bgImg?'on':''}" onclick="S.bg='${c}';S.bgImg=null;saveS()"></button>`).join('');
+ $('flist').innerHTML=F.map((f,i)=>`<div class="fr"><button class="e" style="background:${f.color}" onclick="cyc('${f.id}','emoji')">${f.emoji}</button><input value="${esc(f.name)}" onchange="ren('${f.id}',this.value)"><button class="s" style="border-radius:50%;background:${f.color}" onclick="cyc('${f.id}','color')"></button><button class="s" title="Omslag" onclick="openCover('${f.id}')">🖼️</button><button class="s" onclick="mv(${i},-1)">▲</button><button class="s" onclick="mv(${i},1)">▼</button><button class="s" onclick="rmF('${f.id}')">🗑️</button></div>`).join('')}
+async function cyc(id,k){const f=F.find(x=>x.id==id),L=k=='emoji'?EMO:COLORS;f[k]=L[(L.indexOf(f[k])+1)%L.length];await put('folders',f);renderSettings()}
+async function ren(id,v){const f=F.find(x=>x.id==id);if(!v.trim())return;f.name=v.trim();await put('folders',f)}
+async function mv(i,d){const j=i+d;if(j<0||j>=F.length)return;[F[i],F[j]]=[F[j],F[i]];for(let k=0;k<F.length;k++){F[k].order=k;await put('folders',F[k])}renderSettings()}
+async function rmF(id){const f=F.find(x=>x.id==id),ps=await photosOf(id);if(!confirm(`Map "${f.name}" en ${ps.length} foto's verwijderen?`))return;for(const p of ps)await del('photos',p.id);await del('folders',id);await loadF();renderSettings()}
+$('bgf').onchange=async e=>{const f=e.target.files[0];if(!f)return;const b=await scale(f,1400,.8);S.bgImg=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(b)});saveS()};
+// cover
+let covF=null;
+function coverURL(f,mine){const c=f.cover;if(c&&c.type=='img'&&c.blob){const k='cov'+f.id+(c.v||0);if(!urls.has(k))urls.set(k,URL.createObjectURL(c.blob));return urls.get(k)}
+ if(c&&c.type=='photo'){const p=mine.find(x=>x.id==c.id);if(p)return url(p)}return mine[0]?url(mine[0]):null}
+function openCover(fid){covF=fid;const f=F.find(x=>x.id==fid);$('cinfo').textContent=`${f.emoji} ${f.name} · nu: ${!f.cover?'automatisch':f.cover.type=='photo'?'foto uit map':'eigen foto'}`;$('cpick').innerHTML='';$('ov').classList.add('on');$('csheet').classList.add('on')}
+function closeCover(){$('csheet').classList.remove('on');$('ov').classList.remove('on')}
+async function setCover(c){const f=F.find(x=>x.id==covF);f.cover=c;await put('folders',f);closeCover();toast('Omslag aangepast ✔');renderHome();if($('settings').classList.contains('on'))renderSettings()}
+async function pickFromFolder(){const ps=(await photosOf(covF)).sort((a,b)=>b.ts-a.ts);if(!ps.length)return toast('Nog geen foto\'s in deze map');
+ $('cpick').innerHTML=ps.map(p=>`<div class="ph" data-id="${p.id}" style="background-image:url(${url(p)})"></div>`).join('');$('cpick').querySelectorAll('.ph').forEach(d=>d.onclick=()=>setCover({type:'photo',id:d.dataset.id}))}
+async function squareThumb(file,size=480){const bmp=await createImageBitmap(file,{imageOrientation:'from-image'});const w=bmp.width,h=bmp.height,tr=4/3,r=w/h;
+ let sw=w,sh=h;if(r>tr)sw=h*tr;else if(r<1)sh=w;const c=document.createElement('canvas');c.width=size;c.height=Math.round(size*sh/sw);
+ c.getContext('2d').drawImage(bmp,(w-sw)/2,(h-sh)/2,sw,sh,0,0,c.width,c.height);return new Promise(r=>c.toBlob(r,'image/jpeg',.82))}
+$('covf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;setCover({type:'img',blob:await squareThumb(f),v:Date.now()})};
+// search
+async function doSearch(){const q=$('q').value.trim().toLowerCase();if(!q){$('sbody').innerHTML='';return}const ps=await all('photos');
+ const fm=F.filter(f=>f.name.toLowerCase().includes(q));
+ const pm=ps.filter(p=>{const f=F.find(x=>x.id==p.folder),d=new Date(p.ts);const ds=[fmtD(p.ts),d.toLocaleDateString('nl-BE'),`${d.getDate()}/${d.getMonth()+1}`,p.note||'',f?.name||''].join(' ').toLowerCase();return ds.includes(q)});
+ let h=`<div class="d">MAPPEN · ${fm.length}</div>`+fm.map(f=>`<div class="card" style="display:flex;gap:12px;align-items:center;background:${f.color};color:#fff" onclick="openGal('${f.id}')"><span style="font-size:28px">${f.emoji}</span><b style="flex:1">${esc(f.name)}</b>›</div>`).join('');
+ h+=`<div class="d">FOTO'S · ${pm.length}</div>`+groupHTML(pm,true);$('sbody').innerHTML=h;
+ $('sbody').querySelectorAll('.ph').forEach(d=>d.onclick=()=>{curPhotos=pm;showBig(d.dataset.id)})}
+// demo data for testing (?demo)
+async function demo(){const items=[['Klas Vlinders','🦋','#ff6f91'],['Klas Beertjes','🧸','#c0623a'],['Klas Zonnetjes','☀️','#f8a530'],['Klas Regenboog','🌈','#9b7bff']];
+ const ems=['🎨','🧱','🌻','🍂','✂️','🎶','🍎','🐛','🖍️','🧩'];let k=0;
+ for(const [i,[n,e,c]] of items.entries()){const id='demo'+i;await put('folders',{id,name:n,emoji:e,color:c,order:i});
+  for(let j=0;j<(4-i)*2+1;j++){const cv=document.createElement('canvas');cv.width=cv.height=400;const g=cv.getContext('2d'),gr=g.createLinearGradient(0,0,400,400);gr.addColorStop(0,`hsl(${k*47%360},80%,85%)`);gr.addColorStop(1,`hsl(${(k*47+60)%360},70%,70%)`);g.fillStyle=gr;g.fillRect(0,0,400,400);g.font='180px serif';g.textAlign='center';g.textBaseline='middle';g.fillText(ems[k%ems.length],200,210);k++;
+   const b=await new Promise(r=>cv.toBlob(r,'image/jpeg',.8));await addPhoto(id,b,Date.now()-Math.floor(j/2)*864e5*(j>3?4:1)-j*3e5,j==0?'Herfstknutselwerk':'')}}}
+(async()=>{db=await idb();const s=await tx('kv','readonly',x=>x.get('settings'));if(s)S=s;const P=new URLSearchParams(location.search);
+ if(P.has('demo')&&!(await all('folders')).length){S.title='📸 Klasfoto\'s';await put('kv',S,'settings');await demo()}
+ applyS();await renderHome();const v=P.get('view');if(v=='gallery'){await openGal(F[0].id)}else if(v=='share'){await openGal(F[0].id);selMode=true;curPhotos.slice(0,4).forEach(p=>sel.add(p.id));await openGal(F[0].id);openShare()}else if(v)go(v);
+ if('serviceWorker'in navigator&&location.protocol!='file:')navigator.serviceWorker.register('sw.js')})();
+</script></body></html>
