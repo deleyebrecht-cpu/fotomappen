@@ -47,9 +47,12 @@ header h1{font-size:28px;font-weight:900;flex:1;overflow:hidden;text-overflow:el
  <div class="grid" id="tiles"></div>
 </section>
 <section id="gallery" class="view">
- <header><button class="ib" onclick="go('home')">‹</button><h1 id="gtitle" style="font-size:22px"></h1><button class="ib" id="selbtn" onclick="toggleSel()">☑️</button></header>
+ <header><button class="ib" onclick="go('home')">‹</button><h1 id="gtitle" style="font-size:22px"></h1><button class="ib" title="Map verwijderen" style="background:#e5484d;color:#fff" onclick="rmF(cur)">🗑️</button><button id="selbtn" onclick="toggleSel()" style="padding:10px 14px;border-radius:20px;background:#fff;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.1)">☑️ Selecteer</button></header>
  <div id="gbody"></div>
- <div class="bar"><button class="btn" id="sharebtn" onclick="openShare()">📤 Deel map</button><button class="btn p" style="flex:none;width:64px" onclick="shoot(cur)">📷</button></div>
+ <div class="bar" id="selbar" style="display:none;flex-direction:column;gap:8px;background:#fff;box-shadow:0 -4px 16px rgba(0,0,0,.12);border-radius:22px 22px 0 0;z-index:5">
+  <div style="display:flex;align-items:center;justify-content:space-between"><b id="selcnt" style="font-size:16px">0 geselecteerd</b><button onclick="selAllToggle()" id="selall" style="padding:8px 14px;border-radius:16px;background:#ffe1ea;color:#d94a76;font-weight:800">Alles</button></div>
+  <div style="display:flex;gap:8px"><button class="btn" style="background:#e5484d" onclick="delSel()">🗑️ Verwijderen</button><button class="btn p" onclick="openShare()">📤 Delen</button></div></div>
+ <div class="bar" id="normbar"><button class="btn" id="sharebtn" onclick="openShare()">📤 Deel map</button><button class="btn p" style="flex:none;width:64px" onclick="shoot(cur)">📷</button></div>
 </section>
 <section id="search" class="view">
  <header><button class="ib" onclick="go('home')">‹</button><h1 style="font-size:24px">🔍 Zoeken</h1></header>
@@ -63,6 +66,8 @@ header h1{font-size:28px;font-weight:900;flex:1;overflow:hidden;text-overflow:el
   <div style="display:flex;gap:8px;margin-top:10px"><button class="btn l" onclick="$('bgf').click()">📷 Eigen foto</button><button class="btn l" onclick="S.bgImg=null;saveS()">Foto weg</button></div></div>
  <div class="card"><div class="lb">Mappen</div><div id="flist"></div><button class="btn p" style="width:100%;margin-top:8px" onclick="addFolder()">+ Nieuwe map</button>
   <div style="font-size:12px;color:#8a8190;margin-top:6px">Tik op emoji of kleur om te wijzigen · ▲▼ volgorde · 🗑️ verwijderen</div></div>
+ <div class="card"><div class="lb">Camera</div><div style="display:flex;gap:8px"><button class="btn l" id="cm-snel" onclick="S.cam='snel';saveS()">⚡ Snelle camera</button><button class="btn l" id="cm-gsm" onclick="S.cam='gsm';saveS()">📱 Camera van de gsm</button></div>
+  <div style="font-size:12px;color:#8a8190;margin-top:6px">Snelle camera: elke tik slaat meteen een foto op, zonder bevestigen.</div></div>
  <div class="card"><div class="lb">Back-up</div><div style="display:flex;gap:8px"><button class="btn l" onclick="exportAll()">⬇️ Exporteren</button><button class="btn l" onclick="$('impf').click()">⬆️ Importeren</button></div>
   <div style="font-size:12px;color:#8a8190;margin-top:6px">Alle foto's staan enkel op dit toestel. Maak geregeld een back-up.</div></div>
 </section>
@@ -76,9 +81,20 @@ header h1{font-size:28px;font-weight:900;flex:1;overflow:hidden;text-overflow:el
  <button class="btn l" style="width:100%;margin-bottom:8px;text-align:left" onclick="setCover(null)">🔄 Automatisch (laatste foto)</button>
  <button class="btn l" style="width:100%;margin-bottom:8px;text-align:left" onclick="pickFromFolder()">🗂️ Kies uit deze map</button>
  <button class="btn l" style="width:100%;text-align:left" onclick="$('covf').click()">🖼️ Kies uit galerij</button>
- <div class="pg" id="cpick" style="padding:12px 0 0"></div></div>
+ <div class="pg" id="cpick" style="padding:12px 0 0"></div>
+ <button class="btn" style="width:100%;margin-top:14px;background:#e5484d" onclick="closeCover();rmF(covF)">🗑️ Map verwijderen</button></div>
 <input type="file" id="covf" accept="image/*" hidden>
 <div class="big" id="big"><img id="bigimg"><div class="t"><button class="ib" onclick="$('big').classList.remove('on')">✕</button><textarea id="note" placeholder="Notitie…"></textarea><button class="ib" onclick="delOne()">🗑️</button></div></div>
+<div id="qc" style="position:fixed;inset:0;background:#000;z-index:25;display:none;flex-direction:column;color:#fff">
+ <div style="position:relative;flex:1;min-height:0;overflow:hidden"><video id="qv" playsinline muted autoplay style="width:100%;height:100%;object-fit:cover"></video>
+  <div id="qflash" style="position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .25s"></div>
+  <div id="qban" style="position:absolute;top:calc(14px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:9px 18px;border-radius:30px;font-weight:800;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.3)"></div>
+  <button id="qtorch" class="ib" style="position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;display:none" onclick="qTorch()">🔦</button>
+  <div id="qcnt" style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);padding:6px 14px;border-radius:20px;font-size:14px"></div></div>
+ <div style="height:150px;display:flex;align-items:center;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom)">
+  <button id="qthumb" onclick="qDone()" style="width:58px;height:58px;border-radius:14px;border:2px solid #fff;background:#333 center/cover"></button>
+  <button id="qshut" onclick="qShoot()" style="width:86px;height:86px;border-radius:50%;border:5px solid #fff;padding:5px"><span style="display:block;width:100%;height:100%;border-radius:50%;background:#fff"></span></button>
+  <div style="display:flex;flex-direction:column;gap:8px;align-items:center"><button class="ib" style="background:#333;color:#fff" onclick="qSwitch()">🔄</button><button onclick="qDone()" style="background:#ff6f91;color:#fff;font-weight:800;padding:8px 14px;border-radius:16px">Klaar</button></div></div></div>
 <div class="toast" id="toast"></div>
 <input type="file" id="cam" accept="image/*" capture="environment" hidden>
 <input type="file" id="bgf" accept="image/*" hidden><input type="file" id="impf" accept=".zip" hidden>
@@ -102,7 +118,7 @@ function applyS(){$('title').textContent=S.title;document.title=S.title;const b=
  b.style.backgroundColor=S.bg;b.style.backgroundImage=S.bgImg?`url(${S.bgImg})`:'';b.style.color=S.bg=='#1e1b24'&&!S.bgImg?'#eee':''}
 async function loadF(){F=(await all('folders')).sort((a,b)=>a.order-b.order)}
 const urls=new Map();function url(p,k='thumb'){const key=p.id+k;if(!urls.has(key))urls.set(key,URL.createObjectURL(p[k]));return urls.get(key)}
-function go(v){document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id==v));scrollTo(0,0);if(v=='home')renderHome();if(v=='settings')renderSettings();if(v=='search')$('q').focus()}
+function go(v){if(v!='gallery'){selMode=false;sel.clear()}document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id==v));scrollTo(0,0);if(v=='home')renderHome();if(v=='settings')renderSettings();if(v=='search')$('q').focus()}
 async function renderHome(){await loadF();const ps=await all('photos');const t=$('tiles');t.innerHTML='';
  for(const f of F){const mine=ps.filter(p=>p.folder==f.id).sort((a,b)=>b.ts-a.ts);const cv=coverURL(f,mine);const d=document.createElement('button');d.className='tile';d.style.background=`linear-gradient(135deg,${f.color}cc,${f.color})`;
   d.innerHTML=`<span class="th" style="${cv?`background-image:url(${cv})`:''}">${cv?'':f.emoji}</span><b>${cv?f.emoji+' ':''}${esc(f.name)}</b><span>${mine.length} foto's</span>`;
@@ -111,12 +127,29 @@ async function renderHome(){await loadF();const ps=await all('photos');const t=$
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function addFolder(){const n=prompt('Naam van de nieuwe map:');if(!n)return;await put('folders',{id:uid(),name:n.trim(),emoji:EMO[F.length%EMO.length],color:COLORS[F.length%COLORS.length],order:Date.now()});await loadF();renderHome();renderSettings()}
 // camera
-let shootTo=null;function shoot(fid){shootTo=fid;$('cam').value='';$('cam').click()}
+let shootTo=null;function shoot(fid,native){shootTo=fid;if(!native&&(S.cam||'snel')=='snel'&&navigator.mediaDevices?.getUserMedia)return qOpen(fid);$('cam').value='';$('cam').click()}
 $('cam').onchange=async e=>{const fl=[...e.target.files];if(!fl.length)return;for(const f of fl)await addPhoto(shootTo,f);toast(`📸 Opgeslagen in ${F.find(x=>x.id==shootTo)?.name||'map'}`);
  if($('gallery').classList.contains('on'))openGal(shootTo);else renderHome()};
 async function scale(file,max,q){const bmp=await createImageBitmap(file,{imageOrientation:'from-image'}).catch(()=>null);let img=bmp;if(!img){img=new Image();img.src=URL.createObjectURL(file);await img.decode()}
  const w=img.width,h=img.height,r=Math.min(1,max/Math.max(w,h));const c=document.createElement('canvas');c.width=Math.round(w*r);c.height=Math.round(h*r);c.getContext('2d').drawImage(img,0,0,c.width,c.height);return new Promise(res=>c.toBlob(res,'image/jpeg',q))}
 async function addPhoto(fid,file,ts=Date.now(),note=''){const image=await scale(file,2000,.88),thumb=await scale(file,360,.75);await put('photos',{id:uid(),folder:fid,ts,note,image,thumb})}
+// snelle camera
+let qs=null,qFacing='environment',qN=0,qTorchOn=false,qBusy=false;
+async function qStart(){if(qs)qs.getTracks().forEach(t=>t.stop());qs=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:qFacing},width:{ideal:3840},height:{ideal:2160}}});
+ $('qv').srcObject=qs;await $('qv').play().catch(()=>{});const tr=qs.getVideoTracks()[0],cap=tr.getCapabilities?.()||{};qTorchOn=false;$('qtorch').style.display=cap.torch?'':'none';$('qtorch').style.background='#fff'}
+async function qOpen(fid){const f=F.find(x=>x.id==fid);qN=0;$('qban').textContent=f.emoji+' '+f.name;$('qban').style.background=f.color;$('qcnt').textContent='Tik op de knop om te fotograferen';$('qthumb').style.backgroundImage='';
+ $('qc').style.display='flex';try{await qStart()}catch(e){qClose();toast('Snelle camera niet beschikbaar, gsm-camera wordt gebruikt');shoot(fid,true)}}
+function qClose(){if(qs)qs.getTracks().forEach(t=>t.stop());qs=null;$('qc').style.display='none'}
+async function qShoot(){if(!qs||qBusy)return;qBusy=true;const v=$('qv'),fid=shootTo;try{let blob;const tr=qs.getVideoTracks()[0];
+ const fl=$('qflash');fl.style.transition='none';fl.style.opacity=.8;requestAnimationFrame(()=>{fl.style.transition='opacity .3s';fl.style.opacity=0});navigator.vibrate?.(30);
+ if(window.ImageCapture&&!qTorchOn){try{blob=await new ImageCapture(tr).takePhoto()}catch(e){}}
+ if(!blob){const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.9))}
+ await addPhoto(fid,blob);qN++;$('qcnt').textContent=`✔ ${qN} foto${qN>1?"'s":''} opgeslagen`;$('qthumb').style.backgroundImage=`url(${URL.createObjectURL(blob)})`}
+ catch(e){toast('Foto mislukt: '+e.message)}finally{qBusy=false}}
+async function qSwitch(){qFacing=qFacing=='environment'?'user':'environment';try{await qStart()}catch(e){toast('Wisselen mislukt')}}
+async function qTorch(){const tr=qs?.getVideoTracks()[0];if(!tr)return;qTorchOn=!qTorchOn;try{await tr.applyConstraints({advanced:[{torch:qTorchOn}]});$('qtorch').style.background=qTorchOn?'#ffd166':'#fff'}catch(e){qTorchOn=false;toast('Zaklamp niet ondersteund')}}
+function qDone(){const fid=shootTo;qClose();openGal(fid)}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&qs)qClose()});
 // gallery
 const fmtD=ts=>new Date(ts).toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 const fmtT=ts=>new Date(ts).toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'});
@@ -126,23 +159,31 @@ function groupHTML(ps,showF){ps.sort((a,b)=>b.ts-a.ts);let h='',last='';const to
  return h+(last?'</div>':'')}
 async function openGal(fid){cur=fid;const f=F.find(x=>x.id==fid);go('gallery');$('gtitle').textContent=f.emoji+' '+f.name;curPhotos=await photosOf(fid);
  $('gbody').innerHTML=curPhotos.length?groupHTML(curPhotos):'<div class="empty">Nog geen foto\'s.<br>Tik op 📷 om er een te nemen.</div>';bindPh($('gbody'));
- $('sharebtn').textContent=sel.size?`📤 Deel ${sel.size} foto's`:'📤 Deel map'}
-function bindPh(el){el.querySelectorAll('.ph').forEach(d=>d.onclick=()=>{const id=d.dataset.id;if(selMode){sel.has(id)?sel.delete(id):sel.add(id);d.classList.toggle('sel');$('sharebtn').textContent=sel.size?`📤 Deel ${sel.size} foto's`:'📤 Deel map'}else showBig(id)})}
-function toggleSel(){selMode=!selMode;if(!selMode)sel.clear();$('selbtn').style.background=selMode?'#ffe1ea':'';openGal(cur);toast(selMode?'Tik op foto\'s om te selecteren':'Selectie uit')}
+ updSel()}
+function updSel(){const on=selMode;$('selbar').style.display=on?'flex':'none';$('normbar').style.display=on?'none':'flex';$('selbtn').textContent=on?'✕ Annuleer':'☑️ Selecteer';$('selbtn').style.background=on?'#ffe1ea':'#fff';
+ $('selcnt').textContent=`${sel.size} geselecteerd`;$('selall').textContent=sel.size&&sel.size==curPhotos.length?'Geen':'Alles';document.querySelectorAll('#gbody .ph').forEach(d=>d.classList.toggle('sel',sel.has(d.dataset.id)))}
+function bindPh(el){el.querySelectorAll('.ph').forEach(d=>{const id=d.dataset.id;let t=null,lp=false,sx,sy;
+ d.addEventListener('pointerdown',e=>{lp=false;sx=e.clientX;sy=e.clientY;t=setTimeout(()=>{lp=true;navigator.vibrate?.(30);if(!selMode)selMode=true;sel.add(id);updSel()},500)});
+ d.addEventListener('pointermove',e=>{if(t&&Math.hypot(e.clientX-sx,e.clientY-sy)>10){clearTimeout(t);t=null}});
+ ['pointerup','pointercancel','pointerleave'].forEach(ev=>d.addEventListener(ev,()=>{clearTimeout(t);t=null}));
+ d.addEventListener('contextmenu',e=>e.preventDefault());
+ d.onclick=()=>{if(lp){lp=false;return}if(selMode){sel.has(id)?sel.delete(id):sel.add(id);updSel()}else showBig(id)}})}
+function toggleSel(){selMode=!selMode;sel.clear();updSel();if(selMode)toast('Tik op foto\'s om te selecteren')}
+function selAllToggle(){if(sel.size==curPhotos.length)sel.clear();else curPhotos.forEach(p=>sel.add(p.id));updSel()}
 async function showBig(id){bigId=id;const p=await tx('photos','readonly',s=>s.get(id));curPhotos=curPhotos.some(x=>x.id==id)?curPhotos:[p];$('bigimg').src=url(p,'image');$('note').value=p.note||'';$('big').classList.add('on');
  $('note').onchange=async()=>{p.note=$('note').value;await put('photos',p)}}
-async function delOne(){if(!confirm('Deze foto verwijderen?'))return;await del('photos',bigId);$('big').classList.remove('on');if(cur)openGal(cur)}
+async function delOne(){if(!bigId||!confirm('Deze foto definitief verwijderen?'))return;await del('photos',bigId);sel.delete(bigId);bigId=null;$('big').classList.remove('on');toast('🗑️ Foto verwijderd');if($('search').classList.contains('on'))doSearch();else if(cur)openGal(cur);else renderHome()}
 // share
 function shareList(){return sel.size?curPhotos.filter(p=>sel.has(p.id)):curPhotos}
 function openShare(){if(!curPhotos.length)return toast('Geen foto\'s om te delen');const f=F.find(x=>x.id==cur);$('shinfo').textContent=`${f.emoji} ${f.name} · ${sel.size?sel.size+' geselecteerd':'alle '+curPhotos.length+' foto\'s'}`;$('ov').classList.add('on');$('sheet').classList.add('on')}
 function closeShare(){$('ov').classList.remove('on');$('sheet').classList.remove('on')}
-function selAll(){selMode=true;curPhotos.forEach(p=>sel.add(p.id));openGal(cur);openShare()}
+function selAll(){selMode=true;curPhotos.forEach(p=>sel.add(p.id));updSel();openShare()}
 const fname=(p,i)=>{const d=new Date(p.ts),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}_${i+1}.jpg`};
 async function doShare(){const ps=shareList(),f=F.find(x=>x.id==cur);const files=ps.map((p,i)=>new File([p.image],fname(p,i),{type:'image/jpeg'}));
  if(navigator.canShare&&navigator.canShare({files})){try{await navigator.share({files,title:f.name,text:`${f.name} – ${files.length} foto's`});closeShare()}catch(e){if(e.name!='AbortError')toast('Delen mislukt, probeer zip')}}
  else{toast('Delen niet ondersteund, zip wordt gedownload');doZip()}}
 async function doZip(){const ps=shareList(),f=F.find(x=>x.id==cur);const z=await makeZip(await Promise.all(ps.map(async(p,i)=>({name:fname(p,i),data:new Uint8Array(await p.image.arrayBuffer()),ts:p.ts}))));dl(z,f.name.replace(/[^\w\- ]+/g,'')+'.zip');closeShare()}
-async function delSel(){if(!sel.size)return toast('Selecteer eerst foto\'s (☑️)');if(!confirm(`${sel.size} foto's verwijderen?`))return;for(const id of sel)await del('photos',id);sel.clear();closeShare();openGal(cur)}
+async function delSel(){if(!sel.size)return toast('Selecteer eerst foto\'s');const n=sel.size;if(!confirm(`${n} foto${n>1?"'s":''} definitief verwijderen?`))return;for(const id of sel)await del('photos',id);sel.clear();selMode=false;closeShare();await openGal(cur);toast(`🗑️ ${n} verwijderd`)}
 function dl(blob,n){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=n;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href)},2000)}
 // zip (store)
 const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
@@ -169,12 +210,12 @@ $('impf').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const z=
  for(const p of m.photos)await put('photos',{...p,image:new Blob([z[`img/${p.id}.jpg`]],{type:'image/jpeg'}),thumb:new Blob([z[`thumb/${p.id}.jpg`]],{type:'image/jpeg'})});
  toast('Back-up teruggezet ✔');applyS();go('home')}catch(err){alert('Importeren mislukt: '+err.message)}};
 // settings
-function renderSettings(){$('stitle').value=S.title;$('bgs').innerHTML=BGS.map(c=>`<button style="background:${c}" class="${S.bg==c&&!S.bgImg?'on':''}" onclick="S.bg='${c}';S.bgImg=null;saveS()"></button>`).join('');
- $('flist').innerHTML=F.map((f,i)=>`<div class="fr"><button class="e" style="background:${f.color}" onclick="cyc('${f.id}','emoji')">${f.emoji}</button><input value="${esc(f.name)}" onchange="ren('${f.id}',this.value)"><button class="s" style="border-radius:50%;background:${f.color}" onclick="cyc('${f.id}','color')"></button><button class="s" title="Omslag" onclick="openCover('${f.id}')">🖼️</button><button class="s" onclick="mv(${i},-1)">▲</button><button class="s" onclick="mv(${i},1)">▼</button><button class="s" onclick="rmF('${f.id}')">🗑️</button></div>`).join('')}
+function renderSettings(){['snel','gsm'].forEach(k=>{const b=$('cm-'+k);const on=(S.cam||'snel')==k;b.style.background=on?'#2d2a32':'';b.style.color=on?'#fff':''});$('stitle').value=S.title;$('bgs').innerHTML=BGS.map(c=>`<button style="background:${c}" class="${S.bg==c&&!S.bgImg?'on':''}" onclick="S.bg='${c}';S.bgImg=null;saveS()"></button>`).join('');
+ $('flist').innerHTML=F.map((f,i)=>`<div class="fr"><button class="e" style="background:${f.color}" onclick="cyc('${f.id}','emoji')">${f.emoji}</button><input value="${esc(f.name)}" onchange="ren('${f.id}',this.value)"><button class="s" style="border-radius:50%;background:${f.color}" onclick="cyc('${f.id}','color')"></button><button class="s" title="Omslag" onclick="openCover('${f.id}')">🖼️</button><button class="s" onclick="mv(${i},-1)">▲</button><button class="s" onclick="mv(${i},1)">▼</button><button class="s" style="background:#e5484d;color:#fff;border-radius:10px" title="Map verwijderen" onclick="rmF('${f.id}')">🗑️</button></div>`).join('')}
 async function cyc(id,k){const f=F.find(x=>x.id==id),L=k=='emoji'?EMO:COLORS;f[k]=L[(L.indexOf(f[k])+1)%L.length];await put('folders',f);renderSettings()}
 async function ren(id,v){const f=F.find(x=>x.id==id);if(!v.trim())return;f.name=v.trim();await put('folders',f)}
 async function mv(i,d){const j=i+d;if(j<0||j>=F.length)return;[F[i],F[j]]=[F[j],F[i]];for(let k=0;k<F.length;k++){F[k].order=k;await put('folders',F[k])}renderSettings()}
-async function rmF(id){const f=F.find(x=>x.id==id),ps=await photosOf(id);if(!confirm(`Map "${f.name}" en ${ps.length} foto's verwijderen?`))return;for(const p of ps)await del('photos',p.id);await del('folders',id);await loadF();renderSettings()}
+async function rmF(id){const f=F.find(x=>x.id==id),ps=await photosOf(id);if(!confirm(`Map "${f.name}" verwijderen?\n\nDaarmee worden ook ${ps.length} foto${ps.length==1?'':"'s"} definitief gewist. Dit kan niet ongedaan gemaakt worden.`))return;for(const p of ps)await del('photos',p.id);await del('folders',id);await loadF();toast(`🗑️ Map "${f.name}" verwijderd`);if($('settings').classList.contains('on'))renderSettings();else go('home')}
 $('bgf').onchange=async e=>{const f=e.target.files[0];if(!f)return;const b=await scale(f,1400,.8);S.bgImg=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(b)});saveS()};
 // cover
 let covF=null;
